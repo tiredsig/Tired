@@ -61,28 +61,27 @@
             position: absolute;
             font-size: 2.5rem;
             cursor: pointer;
-            pointer-events: auto; /* Crucial: allows individual hearts to be tapped */
-            animation: floatUp 4s linear forwards;
+            pointer-events: auto; 
+            animation: floatUp 5s linear forwards; /* Smooth, steady float duration */
             opacity: 0; 
             z-index: 5;
-            transition: transform 0.1s ease;
         }
 
-        /* Continuous float upwards from the bottom of the screen */
+        /* FIXED: Animation travels past the very top (-15vh) before vanishing */
         @keyframes floatUp {
             0% {
                 transform: translateY(105vh) scale(0.6) rotate(0deg);
                 opacity: 0; 
             }
             10% {
-                opacity: 0.9;
+                opacity: 0.9; /* Quick fade in near the bottom */
             }
             90% {
-                opacity: 0.9;
+                opacity: 0.9; /* Stays fully solid through the middle and top screen */
             }
             100% {
-                transform: translateY(-10vh) scale(1.2) rotate(360deg);
-                opacity: 0;
+                transform: translateY(-15vh) scale(1.2) rotate(360deg); /* Clear of the top ceiling */
+                opacity: 0; 
             }
         }
 
@@ -91,7 +90,7 @@
             position: absolute;
             pointer-events: none;
             z-index: 15;
-            border-radius: 50%; /* Circular confetti shapes */
+            border-radius: 50%; 
             animation: explode 0.6s ease-out forwards;
         }
 
@@ -124,11 +123,9 @@
         const bgMusic = document.getElementById('bgMusic');
 
         let hasBeenTapped = false;
-
-        // Colors for the pink confetti burst explosion
         const confettiColors = ['#fff0f5', '#ff69b4', '#ff1493', '#ffc0cb', '#ffffff'];
 
-        // 1. BACKGOUND MUSIC TRIGGER (Starts audio on the first ever click anywhere)
+        // BACKGROUND MUSIC & MAIN INTERACTION
         body.addEventListener('click', () => {
             if (!hasBeenTapped) {
                 mainHeading.textContent = "love you";
@@ -142,48 +139,42 @@
             }
         });
 
-        // 2. AUTOMATIC HEART SPAWNER (Runs endlessly without requiring clicks)
+        // TUNED GENERATOR: Balances the amount of hearts on the screen perfectly
         setInterval(() => {
-            // Pick a completely random horizontal coordinate across the screen width
             const randomX = Math.random() * window.innerWidth;
-            // Spawn the automatic heart at the bottom boundary line
             createAutoHeart(randomX, window.innerHeight);
-        }, 600); // Spawns a fresh automatic floating heart every 600 milliseconds
+        }, 850); // Increased from 600ms to 850ms so the screen feels spacious and not overcrowded
 
         function createAutoHeart(x, y) {
             const heart = document.createElement('div');
             heart.classList.add('heart-effect');
             heart.innerHTML = '❤️'; 
 
-            // Initialize positioning configurations
             heart.style.left = x + 'px';
             heart.style.top = y + 'px';
 
-            const randomScale = 0.6 + Math.random() * 1.2;
+            const randomScale = 0.6 + Math.random() * 0.9; // Balanced max sizing
             heart.style.transform = `scale(${randomScale})`;
 
-            const randomDuration = 3.5 + Math.random() * 2;
+            // Slower vertical travel speeds (4.5s to 6.5s) to allow a taller journey
+            const randomDuration = 4.5 + Math.random() * 2;
             heart.style.animationDuration = randomDuration + 's';
 
-            // 3. INTERACTIVE HEART POPPING & CONFETTI ENGINE
+            // INTERACTIVE POPPING ENGINE
             heart.addEventListener('mousedown', (event) => {
-                event.stopPropagation(); // Prevents interaction calculations from leaking to body
+                event.stopPropagation(); 
                 
-                // Get the exact center coordinate point of the specific heart clicked
                 const rect = heart.getBoundingClientRect();
                 const heartCenterX = rect.left + rect.width / 2;
                 const heartCenterY = rect.top + rect.height / 2;
 
-                // Create the pink confetti explosion array cluster
                 createConfettiExplosion(heartCenterX, heartCenterY);
-
-                // Pop and remove the heart from the website instantly
                 heart.remove();
             });
 
             body.appendChild(heart);
 
-            // Housekeeping cleanup logic
+            // Memory collection cleanup
             setTimeout(() => {
                 if (heart.parentNode) {
                     heart.remove();
@@ -191,27 +182,22 @@
             }, randomDuration * 1000);
         }
 
-        // Confetti physics generation calculation 
+        // CONFETTI PHYSICS ENGINE
         function createConfettiExplosion(x, y) {
-            const particleCount = 20; // Quantity of confetti pieces launched per pop
+            const particleCount = 20; 
 
             for (let i = 0; i < particleCount; i++) {
                 const confetti = document.createElement('div');
                 confetti.classList.add('confetti');
 
-                // Assign random pink shades from color tray palette
                 confetti.style.backgroundColor = confettiColors[Math.floor(Math.random() * confettiColors.length)];
-                
-                // Spawn positions locked directly to heart center point coordinates
                 confetti.style.left = x + 'px';
                 confetti.style.top = y + 'px';
 
-                // Randomize random sizes for individual confetti dots
                 const size = 6 + Math.random() * 8;
                 confetti.style.width = size + 'px';
                 confetti.style.height = size + 'px';
 
-                // Set explosive scatter trajectory metrics using CSS Custom Properties variables
                 const angle = Math.random() * Math.PI * 2;
                 const velocity = 50 + Math.random() * 100;
                 const targetX = Math.cos(angle) * velocity;
@@ -222,7 +208,6 @@
 
                 body.appendChild(confetti);
 
-                // Delete particle node tree once explosion translation concludes
                 setTimeout(() => {
                     confetti.remove();
                 }, 600);
