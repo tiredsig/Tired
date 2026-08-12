@@ -62,16 +62,19 @@
             font-size: 2rem;
             color: #ffffff;
             pointer-events: none;     
-            animation: floatUp 3s linear forwards;
-            opacity: 0.8;
+            animation: floatUp 3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+            opacity: 0; 
         }
 
         @keyframes floatUp {
             0% {
                 transform: translateY(100vh) scale(0.5) rotate(0deg);
-                opacity: 0.8;
+                opacity: 0; 
             }
-            50% {
+            15% {
+                opacity: 1;
+            }
+            85% {
                 opacity: 1;
             }
             100% {
@@ -84,7 +87,6 @@
 <body>
 
     <!-- Invisible Audio Element -->
-    <!-- It looks for a file named music.mp3 inside your GitHub folder -->
     <audio id="bgMusic" src="music.mp3" loop></audio>
 
     <div class="message-container" id="textWrapper">
@@ -102,12 +104,10 @@
 
         body.addEventListener('click', (event) => {
             
-            // This runs the very first time the user taps the screen
             if (!hasBeenTapped) {
                 mainHeading.textContent = "love you";
                 textWrapper.classList.add('revealed');
                 
-                // Triggers the music to play smoothly on the tap
                 bgMusic.play().catch(error => {
                     console.log("Audio playback failed or blocked:", error);
                 });
@@ -115,8 +115,18 @@
                 hasBeenTapped = true;
             }
 
-            // Spawns a flying heart at the cursor location on every single tap
+            // 1. Spawn a flying heart directly at your finger tap location
             createHeart(event.clientX, event.clientY);
+
+            // 2. Spawn extra hearts popping out from the center text area
+            const textRect = textWrapper.getBoundingClientRect();
+            // Pick a random spot along the horizontal width of the text block
+            const randomTextX = textRect.left + Math.random() * textRect.width;
+            // Target the middle vertical height of the text block
+            const textY = textRect.top + (textRect.height / 2);
+            
+            // Generate the text-burst heart
+            createHeart(randomTextX, textY);
         });
 
         function createHeart(x, y) {
@@ -126,19 +136,22 @@
 
             const randomOffset = () => (Math.random() - 0.5) * 40; 
             heart.style.left = (x + randomOffset()) + 'px';
-            heart.style.top = y + 'px';
+            heart.style.top = (y + 15) + 'px';
 
             const randomScale = 0.5 + Math.random() * 1.5;
             heart.style.transform = `scale(${randomScale})`;
 
-            const randomDuration = 2 + Math.random() * 2;
+            const randomDelay = Math.random() * 0.15; 
+            heart.style.animationDelay = randomDelay + 's';
+
+            const randomDuration = 2.5 + Math.random() * 1.5;
             heart.style.animationDuration = randomDuration + 's';
 
             body.appendChild(heart);
 
             setTimeout(() => {
                 heart.remove();
-            }, randomDuration * 1000);
+            }, (randomDuration + randomDelay) * 1000);
         }
     </script>
 </body>
